@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Energy Meter</title>
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Core Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar / Navigation (simplified for dashboard) -->
+        <nav class="sidebar glass-panel">
+            <div class="logo">
+                <i data-lucide="zap" class="logo-icon text-accent"></i>
+                <h2>Energy meter website</h2>
+            </div>
+            <ul class="nav-links">
+                <li class="active"><a href="#" data-target="page-dashboard"><i data-lucide="layout-dashboard"></i>
+                        Dashboard</a></li>
+                <li><a href="#" data-target="page-analytics"><i data-lucide="activity"></i> Analytics</a></li>
+                <li><a href="#" data-target="page-billing"><i data-lucide="credit-card"></i> Billing</a></li>
+                <li><a href="#" data-target="page-settings"><i data-lucide="settings"></i> Settings</a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="top-header glass-panel">
+                <div class="header-left">
+                    <h1 id="header-title">Dashboard</h1>
+                    <p class="subtitle" id="current-date">Live System Status</p>
+                </div>
+                <div class="header-right">
+                    <button class="icon-btn theme-toggle" id="theme-toggle" aria-label="Toggle Theme">
+                        <i data-lucide="sun" id="theme-icon-light" style="display: none;"></i>
+                        <i data-lucide="moon" id="theme-icon-dark"></i>
+                    </button>
+                    <div class="user-profile">
+                        <img src="https://ui-avatars.com/api/?name=User&background=6366f1&color=fff" alt="User"
+                            class="avatar">
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard View -->
+            <div id="page-dashboard" class="page-view dashboard-grid fade-in">
+
+                <!-- Energy Stats Widget (Current & Voltage) -->
+                <section class="widget glass-panel stat-widget" id="energy-stats-widget">
+                    <div class="widget-header">
+                        <h3>Real-time Consumption</h3>
+                        <div class="status-indicator">
+                            <span class="dot pulse-green" id="connection-status"></span>
+                            Live
+                        </div>
+                    </div>
+                    <div class="stats-container">
+                        <div class="stat-box">
+                            <div class="stat-icon-wrapper text-blue">
+                                <i data-lucide="zap"></i>
+                            </div>
+                            <div class="stat-details">
+                                <span class="stat-label">Voltage</span>
+                                <h2 class="stat-value"><span id="voltage-val">230</span><span class="unit">V</span></h2>
+                                <div class="trend positive"><i data-lucide="trending-up"></i> Stable</div>
+                            </div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-icon-wrapper text-orange">
+                                <i data-lucide="activity"></i>
+                            </div>
+                            <div class="stat-details">
+                                <span class="stat-label">Current</span>
+                                <h2 class="stat-value"><span id="current-val">12.5</span><span class="unit">A</span>
+                                </h2>
+                                <div class="trend warning"><i data-lucide="alert-circle"></i> Load</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="threshold-container mt-4">
+                        <div class="threshold-header">
+                            <span>Capacity Usage</span>
+                            <span id="usage-percent">45%</span>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill" id="usage-bar" style="width: 45%;"></div>
+                        </div>
+                        <p class="limit-warning" id="threshold-warning" style="display: none;">
+                            <i data-lucide="alert-triangle"></i> Warning: Usage exceeded 75% threshold!
+                        </p>
+                    </div>
+                </section>
+
+                <!-- Prepaid Mechanism Widget -->
+                <section class="widget glass-panel prepaid-widget" id="prepaid-widget">
+                    <div class="widget-header">
+                        <h3>Prepaid Balance</h3>
+                        <i data-lucide="wallet" class="text-green"></i>
+                    </div>
+                    <div class="balance-display">
+                        <span class="currency">$</span>
+                        <span class="amount" id="balance-amount">45.50</span>
+                    </div>
+                    <div class="estimated-time">
+                        <i data-lucide="clock"></i> Estimated remaining: <strong id="est-days">14 Days</strong>
+                    </div>
+                    <div class="recharge-controls mt-4">
+                        <div class="input-group">
+                            <span class="input-prefix">$</span>
+                            <input type="number" id="recharge-input" placeholder="Amount" min="5" step="5" value="20">
+                        </div>
+                        <button class="btn btn-primary" id="btn-recharge">
+                            <i data-lucide="credit-card"></i> Recharge Now
+                        </button>
+                    </div>
+
+                    <!-- Recharge Success Modal/Toast container -->
+                    <div class="recharge-toast glass-panel" id="recharge-toast">
+                        <i data-lucide="check-circle" class="text-green"></i>
+                        <span>Recharge Successful!</span>
+                    </div>
+
+                    <!-- SMS Alert Toast container -->
+                    <div class="recharge-toast glass-panel" id="sms-toast" style="bottom: 80px; background: rgba(59, 130, 246, 0.95); z-index: 1000;">
+                        <i data-lucide="message-square" style="color: white;"></i>
+                        <span style="color: white;" id="sms-toast-msg">SMS Alert Sent!</span>
+                    </div>
+                </section>
+
+                <!-- Usage Chart Widget -->
+                <section class="widget glass-panel chart-widget" style="grid-column: 1 / -1;">
+                    <div class="widget-header">
+                        <h3>Usage History (Last 24h)</h3>
+                    </div>
+                    <div class="chart-container" style="position: relative; height: 300px; width: 100%;">
+                        <canvas id="usageChart"></canvas>
+                    </div>
+                </section>
+
+            </div>
+
+            <!-- Analytics View -->
+            <div id="page-analytics" class="page-view" style="display: none;">
+                <div class="widget glass-panel mb-4">
+                    <div class="widget-header">
+                        <h2>Advanced Analytics</h2>
+                        <i data-lucide="bar-chart-2" class="text-accent"></i>
+                    </div>
+                    <p style="color: var(--text-muted); margin-bottom: 2rem;">Explore detailed breakdowns of your power
+                        consumption over time.</p>
+
+                    <div class="stats-container">
+                        <div class="stat-box">
+                            <div class="stat-icon-wrapper text-blue"><i data-lucide="calendar"></i></div>
+                            <div class="stat-details">
+                                <span class="stat-label">This Month</span>
+                                <h2 class="stat-value"><span id="monthly-units-val">74.8</span> <span class="unit">kWh</span></h2>
+                            </div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-icon-wrapper text-green"><i data-lucide="leaf"></i></div>
+                            <div class="stat-details">
+                                <span class="stat-label">Carbon Saved</span>
+                                <h2 class="stat-value">120 <span class="unit">kg</span></h2>
+                            </div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-icon-wrapper text-orange"><i data-lucide="target"></i></div>
+                            <div class="stat-details">
+                                <span class="stat-label">Peak Load</span>
+                                <h2 class="stat-value">4.2 <span class="unit">kW</span></h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Billing View -->
+            <div id="page-billing" class="page-view" style="display: none;">
+                <div class="widget glass-panel mb-4">
+                    <div class="widget-header">
+                        <h2>Transaction History</h2>
+                        <i data-lucide="receipt" class="text-accent"></i>
+                    </div>
+                    <p style="color: var(--text-muted); margin-bottom: 2rem;">View your past recharges and download
+                        invoices.</p>
+
+                    <div
+                        style="background: var(--bg-panel-solid); border-radius: 12px; border: 1px solid var(--border-color); overflow: hidden;">
+                        <table style="width: 100%; text-align: left; border-collapse: collapse;">
+                            <thead>
+                                <tr
+                                    style="background: rgba(99, 102, 241, 0.1); border-bottom: 1px solid var(--border-color);">
+                                    <th style="padding: 1rem;">Date</th>
+                                    <th style="padding: 1rem;">Description</th>
+                                    <th style="padding: 1rem;">Amount</th>
+                                    <th style="padding: 1rem;">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr style="border-bottom: 1px solid var(--border-color);">
+                                    <td style="padding: 1rem; color: var(--text-muted);">Today</td>
+                                    <td style="padding: 1rem;">Wallet Recharge via Card ****4242</td>
+                                    <td style="padding: 1rem; font-weight: bold;">$20.00</td>
+                                    <td style="padding: 1rem;"><span class="trend positive"><i
+                                                data-lucide="check-circle"></i> Success</span></td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid var(--border-color);">
+                                    <td style="padding: 1rem; color: var(--text-muted);">Oct 12, 2026</td>
+                                    <td style="padding: 1rem;">Wallet Recharge via PayPal</td>
+                                    <td style="padding: 1rem; font-weight: bold;">$50.00</td>
+                                    <td style="padding: 1rem;"><span class="trend positive"><i
+                                                data-lucide="check-circle"></i> Success</span></td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 1rem; color: var(--text-muted);">Sep 28, 2026</td>
+                                    <td style="padding: 1rem;">Auto-Pay Triggered</td>
+                                    <td style="padding: 1rem; font-weight: bold;">$35.00</td>
+                                    <td style="padding: 1rem;"><span class="trend positive"><i
+                                                data-lucide="check-circle"></i> Success</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings View -->
+            <div id="page-settings" class="page-view" style="display: none;">
+                <div class="widget glass-panel mb-4">
+                    <div class="widget-header">
+                        <h2>System Preferences</h2>
+                        <i data-lucide="sliders" class="text-accent"></i>
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: var(--bg-panel-solid); border-radius: 12px; border: 1px solid var(--border-color);">
+                            <div>
+                                <h4>Free Units Alert</h4>
+                                <p style="font-size: 0.85rem; color: var(--text-muted);">Receive notifications via SMS/RCS when consumption exceeds 75% of 100 free units.</p>
+                            </div>
+                            <button class="btn btn-primary" style="padding: 0.5rem 1rem;">Enabled</button>
+                        </div>
+
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: var(--bg-panel-solid); border-radius: 12px; border: 1px solid var(--border-color);">
+                            <div>
+                                <h4>Auto-Recharge</h4>
+                                <p style="font-size: 0.85rem; color: var(--text-muted);">Automatically add $20 when
+                                    balance falls below $5.</p>
+                            </div>
+                            <button class="btn"
+                                style="background: var(--border-color); color: var(--text-main); padding: 0.5rem 1rem;">Disabled</button>
+                        </div>
+
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: var(--bg-panel-solid); border-radius: 12px; border: 1px solid var(--border-color);">
+                            <div>
+                                <h4>Data Sharing & Telemetry</h4>
+                                <p style="font-size: 0.85rem; color: var(--text-muted);">Allow anonymous usage data to
+                                    improve node balancing.</p>
+                            </div>
+                            <button class="btn"
+                                style="background: var(--border-color); color: var(--text-main); padding: 0.5rem 1rem;">Disabled</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Chatbot Floating UI -->
+    <div class="chatbot-container" id="chatbot-container">
+        <!-- Chat Window -->
+        <div class="chat-window shadow-glass" id="chat-window">
+            <div class="chat-header">
+                <div class="chat-title">
+                    <div class="ai-avatar">⚡</div>
+                    <div>
+                        <h4>Electro-Bot</h4>
+                        <span class="status-text">Online</span>
+                    </div>
+                </div>
+                <button class="icon-btn close-chat" id="close-chat">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="chat-messages" id="chat-messages">
+                <div class="message ai-message">
+                    <div class="msg-bubble">Hello! I'm your smart energy assistant. How can I help you today?</div>
+                    <span class="msg-time">Just now</span>
+                </div>
+            </div>
+            <div class="chat-input-area">
+                <input type="text" id="chat-input" placeholder="Type a message..." autocomplete="off">
+                <button class="btn-send" id="btn-send-msg">
+                    <i data-lucide="send"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Creative Chatbot Toggle Button -->
+        <button class="chat-toggle-btn pulse-glow" id="chat-toggle">
+            <!-- Custom animated SVG Icon -->
+            <svg class="bot-icon" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="botGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#6366f1;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+                    </linearGradient>
+                </defs>
+                <circle cx="50" cy="50" r="45" fill="url(#botGrad)" />
+                <path d="M30,45 Q50,70 70,45" stroke="white" stroke-width="6" fill="transparent"
+                    stroke-linecap="round" />
+                <circle cx="35" cy="35" r="5" fill="white" class="bot-eye" />
+                <circle cx="65" cy="35" r="5" fill="white" class="bot-eye" />
+                <path d="M40,15 L60,15 L50,5 Z" fill="#fbbf24" class="bot-spark" />
+            </svg>
+        </button>
+    </div>
+
+    <!-- Core Scripts -->
+    <script src="js/utils/notifications.js"></script>
+    <script src="js/components/ThemeToggle.js"></script>
+    <script src="js/components/EnergyStats.js"></script>
+    <script src="js/components/PrepaidModule.js"></script>
+    <script src="js/components/Chatbot.js"></script>
+    <script src="js/components/Navigation.js"></script>
+    <script src="js/app.js"></script>
+</body>
+
+</html>
